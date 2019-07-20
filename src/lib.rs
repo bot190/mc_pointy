@@ -1,6 +1,8 @@
 mod replacement_definitions;
+mod region;
 
 pub use crate::replacement_definitions::replacements;
+pub use crate::region::region_file;
 use std::collections::HashMap;
 
 pub fn convert_json_dirty(values: serde_json::Value) -> replacements::Replacements

@@ -1,13 +1,13 @@
 extern crate clap;
+use clap::{App, Arg};
 
 use std::io;
 use std::fs::{self, File};
 use std::path::PathBuf;
 use std::ffi::OsStr;
 
-use mc_pointy::replacements;
+use mc_pointy::{replacements, region_file};
 
-use clap::{App, Arg};
 
 fn main() -> Result<(), io::Error> {
     let matches = App::new("MC ")
@@ -28,22 +28,32 @@ fn main() -> Result<(), io::Error> {
 
     // Input path is to a folder, we need to find the MCA files inside it
     let mut region_files: Vec<PathBuf> = Vec::new();
-    for entry in fs::read_dir(input_path)? {
-        // We can't continue if the path provided is invalid so we just return the failure
-        let entry = (entry?).path();
-        if !entry.is_dir() {
-            match entry.extension() {
-                Some(ext) => {
-                    if ext == OsStr::new("mca") {
-                        region_files.push(entry)
-                    }
-                },
-                _ => continue,
+    let path = PathBuf::from(input_path);
+    if !path.is_dir() {
+        match path.extension() {
+            Some(ext) => {
+                // if ext == OsStr::new("mca") {
+                    region_files.push(path)
+                // }
+            },
+            _ => {},
+        }
+    } else {
+        for entry in fs::read_dir(input_path)? {
+            // We can't continue if the path provided is invalid so we just return the failure
+            let entry = (entry?).path();
+            if !entry.is_dir() {
+                match entry.extension() {
+                    Some(ext) => {
+                        if ext == OsStr::new("mca") {
+                            region_files.push(entry)
+                        }
+                    },
+                    _ => continue,
+                }
             }
         }
     }
-
-    println!("{:?}", region_files);
 
     // Handle the config parameter and parse out the config
     let config: Option<replacements::Replacements> = match matches.value_of("Config") {
@@ -56,6 +66,16 @@ fn main() -> Result<(), io::Error> {
 
 
     // Iterate over region files
+    for region in region_files {
+        println!("Opening region file: {:?}", region);
+        let mut file = fs::File::open(region)?;
+
+        // Region files have a special format that isn't just root tags.
+        let header = region_file::Header::new(&mut file).unwrap();
+        println!("{:?}", header);
+
+        return Ok(());
+    }
         // Iterate over Chunk objects in each file
             // Iterate over sections in each Chunk->Level
                 // Continue if marker tag is present
