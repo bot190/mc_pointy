@@ -23,3 +23,6 @@ Each chunk has a 5 byte header before the compressed NBT data.
 
 1. GZIP (Unused)
 2. ZLIB
+
+## Writing to Region file
+When writing out to a region file it's possible that the chunk will take more space than it did previously. If this happens then you'll have to check to see if there is room in the current location to use an additional sector. If not then the file should be searched for a gap with enough room.

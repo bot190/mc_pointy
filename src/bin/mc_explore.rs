@@ -71,12 +71,18 @@ fn main() -> Result<(), io::Error> {
         let mut file = fs::File::open(region)?;
 
         // Region files have a special format that isn't just root tags.
-        let header = region_file::Header::new(&mut file).unwrap();
-        println!("{:?}", header);
+        let mut header = region_file::Header::new(&mut file, true).unwrap();
+        println!("{}", header);
+
+        // Iterate over Chunk objects in each file
+        for chunk in header.iter_mut() {
+            let blob = chunk.parse_nbt(&mut file)?;
+            println!("{:?}", blob);
+            return Ok(())
+        }
 
         return Ok(());
     }
-        // Iterate over Chunk objects in each file
             // Iterate over sections in each Chunk->Level
                 // Continue if marker tag is present
                 // Call into function to convert blocks/add and data to block object
